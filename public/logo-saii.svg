@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 700" fill="none">
+  <defs>
+    <style>
+      .logo-bg { fill: #5B3A8F; }
+      .logo-text { fill: #FFFFFF; }
+    </style>
+  </defs>
+  
+  <!-- Forme de fond organique stylisée -->
+  <path class="logo-bg" d="M100 50C50 80 20 150 20 220c0 80 30 160 80 220c50 60 120 100 200 120c60 15 130 20 200 0c80-22 150-80 200-150c35-50 55-110 55-170c0-50-15-100-45-140c-35-48-90-80-150-90c-45-8-95-5-140 10c-60 20-115 60-150 120c-25 42-40 90-45 140c-3 30-2 60 5 88c10 40 30 75 60 100c40 33 90 50 145 50c70 0 135-30 175-80c25-31 40-70 40-110c0-30-8-58-22-83"/>
+  
+  <!-- Texte "saii" en blanc -->
+  <text x="50" y="480" font-family="'Arial Black', 'Arial Bold', sans-serif" font-size="340" font-weight="900" letter-spacing="-15" class="logo-text">saii</text>
+  
+  <!-- Texte "EDIT" en haut à droite -->
+  <text x="555" y="600" font-family="Arial, sans-serif" font-size="95" font-weight="700" letter-spacing="2" class="logo-text">EDIT</text>
+  
+  <!-- Petits carrés décoratifs violets -->
+  <rect x="555" y="62" width="76" height="76" class="logo-bg" rx="0"/>
+  <rect x="665" y="62" width="76" height="76" class="logo-bg" rx="0"/>
+</svg>
