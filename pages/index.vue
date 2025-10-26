@@ -221,7 +221,8 @@
           <div class="grid grid-cols-4 gap-4 text-center">
             <div class="bg-white rounded-xl p-4 shadow">
               <p class="text-xs text-gray-600 mb-1">Prix de base</p>
-              <p class="text-2xl font-bold text-gray-400 line-through">{{ prixBase }} €</p>
+              <p v-if="tauxRemise > 0" class="text-2xl font-bold text-gray-400 line-through">{{ prixBase }} €</p>
+              <p v-else class="text-2xl font-bold text-gray-900">{{ prixBase }} €</p>
             </div>
             <div class="bg-white rounded-xl p-4 shadow flex items-center justify-center">
               <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
@@ -293,7 +294,7 @@
 
             <div class="bg-gray-50 rounded-xl p-6 mb-6">
               <div class="flex items-baseline justify-center gap-2 mb-2">
-                <span class="text-2xl text-gray-400 line-through">{{ prixBase }} €</span>
+                <span v-if="tauxRemise > 0" class="text-2xl text-gray-400 line-through">{{ prixBase }} €</span>
                 <span class="text-5xl font-bold text-indigo-600">{{ formatNumber(prixAvecRemise) }} €</span>
                 <span class="text-gray-600">/an</span>
               </div>
@@ -372,7 +373,7 @@
 
             <div class="bg-gray-50 rounded-xl p-6 mb-4">
               <div class="flex items-baseline justify-center gap-2 mb-2">
-                <span class="text-2xl text-gray-400 line-through">{{ prixBase }} €</span>
+                <span v-if="tauxRemise > 0" class="text-2xl text-gray-400 line-through">{{ prixBase }} €</span>
                 <span class="text-5xl font-bold text-indigo-600">{{ formatNumber(prixAvecRemise) }} €</span>
                 <span class="text-gray-600">/an</span>
               </div>
@@ -437,7 +438,7 @@
 
             <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 mb-4 border-2 border-purple-200">
               <div class="flex items-baseline justify-center gap-2 mb-2">
-                <span class="text-2xl text-gray-400 line-through">{{ prixBase }} €</span>
+                <span v-if="tauxRemise > 0" class="text-2xl text-gray-400 line-through">{{ prixBase }} €</span>
                 <span class="text-5xl font-bold text-purple-600">{{ formatNumber(prixAvecRemise) }} €</span>
                 <span class="text-gray-600">/an</span>
               </div>
@@ -506,6 +507,22 @@
           <p class="text-xl text-purple-200">
             Ajustez les participations pour atteindre <span class="font-bold text-yellow-300">{{ formatNumber(prixAvecRemise) }} €</span> / an par licence
           </p>
+          
+          <!-- Affichage du palier SAGA actuel -->
+          <div v-if="nombreLicences >= 50" class="mt-4 p-4 bg-white/20 backdrop-blur rounded-xl max-w-md mx-auto">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-green-300" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-sm font-semibold">Palier SAGA Actif</span>
+              </div>
+              <div class="text-right">
+                <p class="text-lg font-bold text-green-300">{{ getSagaPourcentage() }}%</p>
+                <p class="text-xs text-purple-200">Participation SAGA</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Configurateur Partenaires Premium -->
@@ -630,7 +647,7 @@
               </div>
             </div>
 
-            <!-- SAGA (visible uniquement à partir de 50 licences) -->
+            <!-- SAGA - Participation automatique 5% -->
             <div v-else class="participation-item group">
               <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-4">
@@ -639,32 +656,36 @@
                   </div>
                   <div>
                     <h4 class="text-xl font-bold text-gray-900">SAGA</h4>
-                    <p class="text-sm text-gray-600">3 campagnes produits incluses (débloquée à partir de 50 licences)</p>
+                    <p class="text-sm text-gray-600">
+                      Participation automatique ({{ getSagaPourcentage() }}% de l'investissement global)
+                    </p>
                   </div>
                 </div>
                 <div class="text-right relative">
                   <div class="relative inline-block cursor-help">
-                    <p class="text-4xl font-bold text-green-600">{{ (participations.saga / 12).toFixed(0) }} €<span class="text-lg text-gray-500">/mois</span></p>
-                    <p class="text-xs text-gray-500 mt-1">{{ (participations.saga / prixAvecRemise * 100).toFixed(0) }}% du total</p>
+                    <p class="text-4xl font-bold text-green-600">{{ formatNumber(coutGlobalSaga / nombreLicences / 12) }} €<span class="text-lg text-gray-500">/mois</span></p>
+                    <p class="text-xs text-gray-500 mt-1">{{ getSagaPourcentage() }}% automatique</p>
                     <!-- Tooltip annuel au survol -->
                     <div class="absolute bottom-full right-0 mb-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
                       <div class="bg-green-600 text-white px-4 py-2 rounded-lg shadow-xl whitespace-nowrap text-sm">
-                        <p class="font-semibold">{{ participations.saga }} € /an</p>
+                        <p class="font-semibold">{{ formatNumber(coutGlobalSaga) }} € /an</p>
                         <div class="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-green-600"></div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <input 
-                v-model.number="participations.saga" 
-                type="range" 
-                min="0" 
-                max="600" 
-                step="60"
-                class="w-full h-4 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-500 hover:accent-green-600"
-                @input="updateTotal"
-              >
+              
+              <!-- Affichage du calcul SAGA automatique -->
+              <div class="bg-green-100 rounded-lg p-4 text-sm">
+                <div class="flex items-center justify-between text-green-800 mb-2">
+                  <span class="font-semibold">Calcul automatique :</span>
+                  <span class="font-bold">{{ getSagaPourcentage() }}% de l'investissement global</span>
+                </div>
+                <div class="text-xs text-green-700">
+                  ({{ formatNumber(participations.mme + participations.adherent + participations.partenaire) }}€ × {{ nombreLicences }} licences × {{ getSagaPourcentage() }}% = {{ formatNumber(coutGlobalSaga) }}€)
+                </div>
+              </div>
             </div>
 
             <!-- ADHÉRENT -->
@@ -693,11 +714,40 @@
                   </div>
                 </div>
               </div>
+              
+              <!-- Option prise en charge totale -->
+              <div class="mb-4 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <button 
+                    @click="adherentPrendreEnChargeTotal"
+                    class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-lg"
+                    :disabled="participations.adherent >= prixAvecRemise"
+                  >
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    Prendre en charge totalement
+                  </button>
+                  <button 
+                    @click="adherentReset"
+                    class="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-sm font-semibold transition-all"
+                    :disabled="participations.adherent === 0"
+                  >
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+                    </svg>
+                    Reset
+                  </button>
+                </div>
+                <div class="text-xs text-gray-500">
+                  Max: {{ formatNumber(prixAvecRemise) }} €
+                </div>
+              </div>
               <input 
                 v-model.number="participations.adherent" 
                 type="range" 
                 min="0" 
-                max="600" 
+                :max="prixAvecRemise" 
                 step="60"
                 class="w-full h-4 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-500 hover:accent-purple-600"
                 @input="updateTotal"
@@ -802,7 +852,12 @@
               <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border-2 border-green-200">
                 <p class="text-xs text-gray-600 mb-1">SAGA</p>
                 <p class="text-2xl font-bold text-green-600">{{ formatNumber(coutGlobalSaga) }} €</p>
-                <p class="text-xs text-gray-500 mt-1">{{ nombreLicences >= 50 ? nombreLicences : 0 }} licences × {{ participations.saga }} €</p>
+                <p class="text-xs text-gray-500 mt-1">
+                  {{ nombreLicences >= 50 ? 
+                    `${getSagaPourcentage()}% de l'investissement global` : 
+                    'Participation à partir de 50 licences' 
+                  }}
+                </p>
               </div>
               
               <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border-2 border-purple-200">
@@ -830,8 +885,8 @@
               </div>
             </div>
 
-            <!-- Coût Total de l'Opération -->
-            <!-- Remise SAGA mise en avant -->
+        <!-- Coût Total de l'Opération -->
+        <!-- Remise SAGA mise en avant -->
             <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-6 text-white shadow-2xl mb-6 border-4 border-yellow-300 animate-pulse">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
@@ -1089,7 +1144,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted, watch } from 'vue'
 import ScreenModal from '~/components/ScreenModal.vue'
 import KitModal from '~/components/KitModal.vue'
 import { useAdminStore } from '~/stores/admin'
@@ -1106,7 +1161,7 @@ const showBudgetComparatif = ref(false)
 const budgetSection = ref(null)
 
 // Prix de base (depuis le store)
-const prixBase = computed(() => adminStore.prixConfig.prixBase || 732)
+const prixBase = computed(() => adminStore.prixConfig?.prixBase || 732)
 
 // Nombre de licences (= Points de Vente, détermine le taux de remise)
 const nombreLicences = ref(50)
@@ -1163,10 +1218,9 @@ const valeurOfferteMessage = computed(() => {
   }
 })
 
-// État des participations (SAGA à 120 par défaut mais peut être ajustée)
+// État des participations (SAGA calculé automatiquement)
 const participations = ref({
   mme: 360,
-  saga: 120,
   adherent: 0,
   partenaire: 120
 })
@@ -1184,11 +1238,28 @@ const validatePartenaires = () => {
   }
 }
 
-// Calcul du total par PDV (SAGA uniquement si >= 50 licences)
+// Fonction pour que l'adhérent prenne en charge totalement l'abonnement
+const adherentPrendreEnChargeTotal = () => {
+  participations.value.adherent = prixAvecRemise.value
+  // Réinitialiser les autres participations à 0
+  participations.value.mme = 0
+  participations.value.partenaire = 0
+  // SAGA est maintenant calculé automatiquement
+}
+
+// Fonction pour reset la participation adhérent
+const adherentReset = () => {
+  participations.value.adherent = 0
+  // Remettre les participations par défaut
+  participations.value.mme = 360
+  participations.value.partenaire = 120
+  // SAGA est maintenant calculé automatiquement
+}
+
+// Calcul du total par PDV (SAGA calculé automatiquement)
 const totalParticipations = computed(() => {
-  const sagaContribution = nombreLicences.value >= 50 ? participations.value.saga : 0
+  // SAGA est maintenant calculé automatiquement, pas via le curseur
   return participations.value.mme + 
-         sagaContribution + 
          participations.value.adherent + 
          participations.value.partenaire
 })
@@ -1203,14 +1274,39 @@ const pourcentageObjectif = computed(() => {
   return Math.round((totalParticipations.value / prixAvecRemise.value) * 100)
 })
 
-// Calculs globaux par participant (SAGA uniquement si >= 50 licences)
+// Calculs globaux par participant
 const coutGlobalMME = computed(() => nombreLicences.value * participations.value.mme)
-const coutGlobalSaga = computed(() => {
-  const sagaContribution = nombreLicences.value >= 50 ? participations.value.saga : 0
-  return nombreLicences.value * sagaContribution
-})
 const coutGlobalAdherent = computed(() => nombreLicences.value * participations.value.adherent)
 const coutGlobalPartenaire = computed(() => nombreLicences.value * participations.value.partenaire)
+
+// Calcul SAGA - Pourcentage automatique selon les seuils (à partir de 50 licences)
+const coutGlobalSaga = computed(() => {
+  // SAGA ne participe qu'à partir de 50 licences
+  if (nombreLicences.value < 50) return 0
+  
+  // Récupérer les seuils SAGA depuis le backoffice
+  const seuils = adminStore.sagaConfig?.seuils || {
+    standard: { min: 50, max: 99, pourcentage: 5.0 },
+    premium: { min: 100, max: 199, pourcentage: 7.5 },
+    enterprise: { min: 200, max: 9999, pourcentage: 10.0 }
+  }
+  
+  // Trouver le seuil correspondant au nombre de licences
+  let pourcentageSaga = 5.0 // Par défaut
+  if (nombreLicences.value >= seuils.enterprise.min) {
+    pourcentageSaga = seuils.enterprise.pourcentage
+  } else if (nombreLicences.value >= seuils.premium.min) {
+    pourcentageSaga = seuils.premium.pourcentage
+  } else if (nombreLicences.value >= seuils.standard.min) {
+    pourcentageSaga = seuils.standard.pourcentage
+  }
+  
+  // Calculer l'investissement global (Marque + Adhérent + Partenaire)
+  const investissementGlobal = (participations.value.mme + participations.value.adherent + participations.value.partenaire) * nombreLicences.value
+  
+  // SAGA participe au pourcentage du seuil
+  return Math.round(investissementGlobal * (pourcentageSaga / 100))
+})
 
 // Coût total de l'opération (Nombre de licences × Total par licence)
 const coutTotalOperation = computed(() => {
@@ -1324,10 +1420,43 @@ const handleDemoKit = () => {
   isKitModalOpen.value = false
 }
 
+// Fonction pour obtenir le pourcentage SAGA actuel (selon les seuils)
+const getSagaPourcentage = () => {
+  if (nombreLicences.value < 50) return 0
+  
+  // Récupérer les seuils SAGA depuis le backoffice
+  const seuils = adminStore.sagaConfig?.seuils || {
+    standard: { min: 50, max: 99, pourcentage: 5.0 },
+    premium: { min: 100, max: 199, pourcentage: 7.5 },
+    enterprise: { min: 200, max: 9999, pourcentage: 10.0 }
+  }
+  
+  // Trouver le seuil correspondant au nombre de licences
+  if (nombreLicences.value >= seuils.enterprise.min) {
+    return seuils.enterprise.pourcentage
+  } else if (nombreLicences.value >= seuils.premium.min) {
+    return seuils.premium.pourcentage
+  } else if (nombreLicences.value >= seuils.standard.min) {
+    return seuils.standard.pourcentage
+  }
+  
+  return 5.0 // Par défaut
+}
+
 // Charger les données sauvegardées au montage
 onMounted(() => {
   adminStore.loadFromLocalStorage()
 })
+
+// Watch pour forcer la réactivité des changements du backoffice
+watch(() => adminStore.prixConfig, (newConfig) => {
+  if (newConfig) {
+    // Forcer la réactivité en déclenchant un recalcul
+    nextTick(() => {
+      // Les computed properties se mettront à jour automatiquement
+    })
+  }
+}, { deep: true })
 </script>
 
 <style>

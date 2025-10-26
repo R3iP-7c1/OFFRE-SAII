@@ -57,6 +57,16 @@ export const useAdminStore = defineStore('admin', {
         libelle: 'Campagne promo mars',
         montant: 4000
       }
+    },
+    // Configuration SAGA - Participation en pourcentage avec seuils
+    sagaConfig: {
+      pourcentage: 5.0, // Pourcentage SAGA par défaut
+      description: 'Pourcentage de participation SAGA sur l\'investissement global',
+      seuils: {
+        standard: { min: 50, max: 99, pourcentage: 5.0, nom: 'Standard' },
+        premium: { min: 100, max: 199, pourcentage: 7.5, nom: 'Premium' },
+        enterprise: { min: 200, max: 9999, pourcentage: 10.0, nom: 'Enterprise' }
+      }
     }
   }),
   
@@ -138,6 +148,15 @@ export const useAdminStore = defineStore('admin', {
       }
     },
     
+    // Mise à jour Configuration SAGA
+    updateSagaConfig(data) {
+      this.sagaConfig = { ...this.sagaConfig, ...data }
+      // Sauvegarder dans localStorage
+      if (process.client) {
+        localStorage.setItem('saii_saga_config', JSON.stringify(this.sagaConfig))
+      }
+    },
+    
     // Charger les données depuis localStorage
     loadFromLocalStorage() {
       if (process.client) {
@@ -163,6 +182,12 @@ export const useAdminStore = defineStore('admin', {
         const budget = localStorage.getItem('saii_budget_2025')
         if (budget) {
           this.budget2025 = JSON.parse(budget)
+        }
+        
+        // Charger Configuration SAGA
+        const sagaConfig = localStorage.getItem('saii_saga_config')
+        if (sagaConfig) {
+          this.sagaConfig = JSON.parse(sagaConfig)
         }
       }
     },

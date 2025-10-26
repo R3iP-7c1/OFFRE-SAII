@@ -72,12 +72,12 @@
                 <!-- Prix -->
                 <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 mb-8 border-2 border-blue-200">
                   <div class="flex items-baseline gap-3 mb-2">
-                    <span class="text-2xl text-gray-400 line-through">{{ prixBase }} €</span>
+                    <span v-if="tauxRemise > 0" class="text-2xl text-gray-400 line-through">{{ prixBase }} €</span>
                     <span class="text-5xl font-bold text-indigo-600">{{ formatNumber(prixAvecRemise) }} €</span>
                     <span class="text-xl text-gray-600">/an</span>
                   </div>
                   <p class="text-center text-sm text-gray-600 mb-2">soit {{ formatNumber(prixAvecRemise / 12) }} € / mois</p>
-                  <div class="flex items-center justify-center gap-2 text-green-600 font-semibold">
+                  <div v-if="tauxRemise > 0" class="flex items-center justify-center gap-2 text-green-600 font-semibold">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                     </svg>
