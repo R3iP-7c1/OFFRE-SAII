@@ -564,20 +564,20 @@
               <div class="bg-gradient-to-r from-orange-600 to-red-600 text-white p-6 rounded-2xl shadow-2xl">
                 <div class="grid grid-cols-2 gap-4 text-center">
                   <div class="bg-white/10 backdrop-blur rounded-xl p-3">
-                    <p class="text-xs opacity-80 mb-1">Par Partenaire / an</p>
-                    <p class="text-2xl font-bold">{{ formatNumber(participations.partenaire) }} €</p>
-                  </div>
-                  <div class="bg-white/10 backdrop-blur rounded-xl p-3">
-                    <p class="text-xs opacity-80 mb-1">Par Partenaire / mois</p>
-                    <p class="text-2xl font-bold">{{ formatNumber(participations.partenaire / 12) }} €</p>
-                  </div>
-                  <div class="bg-white/10 backdrop-blur rounded-xl p-3">
-                    <p class="text-xs opacity-80 mb-1">Total {{ nombrePartenaires }} partenaires</p>
+                    <p class="text-xs opacity-80 mb-1">Budget total annuel</p>
                     <p class="text-2xl font-bold">{{ formatNumber(coutGlobalPartenaire) }} €</p>
                   </div>
                   <div class="bg-white/10 backdrop-blur rounded-xl p-3">
+                    <p class="text-xs opacity-80 mb-1">Par partenaire / an</p>
+                    <p class="text-2xl font-bold">{{ formatNumber(coutGlobalPartenaire / nombrePartenaires) }} €</p>
+                  </div>
+                  <div class="bg-white/10 backdrop-blur rounded-xl p-3">
+                    <p class="text-xs opacity-80 mb-1">Par partenaire / mois</p>
+                    <p class="text-2xl font-bold">{{ formatNumber((coutGlobalPartenaire / nombrePartenaires) / 12) }} €</p>
+                  </div>
+                  <div class="bg-white/10 backdrop-blur rounded-xl p-3">
                     <p class="text-xs opacity-80 mb-1">Par opération (÷3)</p>
-                    <p class="text-2xl font-bold">{{ formatNumber(participations.partenaire / 3) }} €</p>
+                    <p class="text-2xl font-bold">{{ formatNumber((coutGlobalPartenaire / nombrePartenaires) / 3) }} €</p>
                   </div>
                 </div>
                 <div class="mt-3 text-center text-sm opacity-90">
@@ -871,12 +871,12 @@
                 <p class="text-2xl font-bold text-orange-600">{{ formatNumber(coutGlobalPartenaire) }} €</p>
                 <p class="text-xs text-gray-500 mt-1">{{ nombreLicences }} licences × {{ participations.partenaire }} €</p>
                 
-                <!-- Tooltip répartition par partenaire -->
+                <!-- Tooltip budget total par partenaire -->
                 <div class="absolute -top-2 left-0 right-0 -translate-y-full opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-20 mb-2">
                   <div class="bg-orange-600 text-white px-4 py-3 rounded-xl shadow-2xl whitespace-nowrap">
-                    <p class="text-sm font-bold mb-2">Répartition par partenaire :</p>
+                    <p class="text-sm font-bold mb-2">Budget total annuel par partenaire :</p>
                     <div class="space-y-1 text-sm">
-                      <p>{{ formatNumber(coutGlobalPartenaire / nombrePartenaires) }} € /partenaire</p>
+                      <p>{{ formatNumber(coutGlobalPartenaire / nombrePartenaires) }} € /partenaire /an</p>
                       <p class="opacity-80">soit {{ formatNumber((coutGlobalPartenaire / nombrePartenaires) / 12) }} € /mois</p>
                     </div>
                     <div class="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-orange-600"></div>

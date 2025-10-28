@@ -34,6 +34,13 @@
           >
             Avantages
           </a>
+          <!-- Bouton Print -->
+          <NuxtLink 
+            to="/print"
+            class="px-4 py-2 text-gray-700 hover:text-cyan-600 font-medium transition-colors rounded-lg hover:bg-cyan-50"
+          >
+            Print
+          </NuxtLink>
         </div>
 
         <!-- Actions Droite -->
@@ -98,6 +105,14 @@
             >
               🤝 Avantages
             </a>
+            <!-- Lien Print mobile -->
+            <NuxtLink 
+              to="/print"
+              @click="mobileMenuOpen = false"
+              class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 rounded-lg font-medium transition-colors"
+            >
+              🖨️ Print
+            </NuxtLink>
           </div>
         </div>
       </Transition>
