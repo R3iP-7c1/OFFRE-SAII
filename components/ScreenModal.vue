@@ -32,9 +32,41 @@
                     <span>Solution Premium</span>
                   </div>
 
-                  <!-- Image de l'écran -->
-                  <div class="rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20">
-                    <img :src="kitData.images?.[0] || '/samsung-screen.jpg'" alt="Écran Samsung 43 pouces avec Player" class="w-full h-auto object-cover" />
+                  <!-- Carrousel d'images de l'écran -->
+                  <div class="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20">
+                    <img :src="currentImage" alt="Écran Samsung 43 pouces avec Player" class="w-full h-auto object-cover select-none" />
+
+                    <!-- Controls -->
+                    <button 
+                      v-if="imagesCount > 1"
+                      @click="prevImage"
+                      class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-white/80 hover:bg-white text-gray-700 shadow-md"
+                    >
+                      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M12.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 1.414L8.414 10l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+                      </svg>
+                    </button>
+                    <button 
+                      v-if="imagesCount > 1"
+                      @click="nextImage"
+                      class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-white/80 hover:bg-white text-gray-700 shadow-md"
+                    >
+                      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 4.293a1 1 0 011.414 0l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414-1.414L11.586 10 7.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                      </svg>
+                    </button>
+
+                    <!-- Dots -->
+                    <div v-if="imagesCount > 1" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 bg-black/30 px-3 py-1.5 rounded-full">
+                      <button 
+                        v-for="(img, idx) in kitData.images"
+                        :key="idx"
+                        @click="goTo(idx)"
+                        class="w-2.5 h-2.5 rounded-full"
+                        :class="idx === currentIndex ? 'bg-white' : 'bg-white/50 hover:bg-white/80'"
+                        aria-label="Aller à l'image"
+                      />
+                    </div>
                   </div>
                   
                   <!-- Stats rapides -->
@@ -243,7 +275,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 
 const props = defineProps({
   isOpen: {
@@ -297,6 +329,45 @@ const handleDemo = () => {
   emit('demo')
   // Logique de démonstration
 }
+
+// Carousel logic
+const currentIndex = ref(0)
+const imagesCount = computed(() => (props.kitData?.images?.length || 0))
+const safeImages = computed(() => (imagesCount.value > 0 ? props.kitData.images : ['/samsung-screen.jpg']))
+const currentImage = computed(() => safeImages.value[Math.min(currentIndex.value, safeImages.value.length - 1)])
+
+const nextImage = () => {
+  if (imagesCount.value <= 1) return
+  currentIndex.value = (currentIndex.value + 1) % imagesCount.value
+}
+
+const prevImage = () => {
+  if (imagesCount.value <= 1) return
+  currentIndex.value = (currentIndex.value - 1 + imagesCount.value) % imagesCount.value
+}
+
+const goTo = (idx) => {
+  if (idx >= 0 && idx < imagesCount.value) currentIndex.value = idx
+}
+
+let autoTimer = null
+const startAuto = () => {
+  if (imagesCount.value <= 1) return
+  stopAuto()
+  autoTimer = setInterval(nextImage, 5000)
+}
+const stopAuto = () => {
+  if (autoTimer) {
+    clearInterval(autoTimer)
+    autoTimer = null
+  }
+}
+
+onMounted(startAuto)
+onBeforeUnmount(stopAuto)
+watch(() => props.isOpen, (open) => {
+  if (open) startAuto(); else stopAuto()
+})
 </script>
 
 <style scoped>

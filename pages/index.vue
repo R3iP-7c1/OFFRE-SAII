@@ -153,8 +153,8 @@
         <p class="text-xl text-gray-600">Prix anniversaire exceptionnel</p>
       </div>
 
-      <!-- Configurateurs : Licences / Points de Vente & Remise -->
-      <div class="max-w-4xl mx-auto bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 rounded-2xl shadow-lg p-6 mb-12 border-2 border-indigo-200">
+      <!-- Configurateurs : Licences / Points de Vente et Type de Tarif -->
+      <div class="max-w-6xl mx-auto bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 rounded-2xl shadow-lg p-6 mb-12 border-2 border-indigo-200">
         <div class="grid md:grid-cols-2 gap-6">
           <!-- Nombre de Licences (= Points de Vente) -->
           <div class="bg-white rounded-xl p-5 shadow-md">
@@ -196,17 +196,18 @@
             </div>
           </div>
 
-          <!-- Remise Automatique -->
+          <!-- Type de Tarif -->
           <div class="bg-white rounded-xl p-5 shadow-md">
             <div class="flex items-center gap-3 mb-4">
-              <div class="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-700 rounded-xl flex items-center justify-center shadow">
+              <div class="w-12 h-12 bg-gradient-to-br from-gray-400 to-gray-500 rounded-xl flex items-center justify-center shadow">
                 <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/>
                 </svg>
               </div>
               <div class="flex-1">
-                <label class="text-lg font-bold text-gray-900">Remise Anniversaire</label>
-                <p class="text-xs text-gray-600">Calculée selon volume</p>
+                <label class="text-lg font-bold text-gray-900">Type de Tarif</label>
+                <p class="text-xs text-gray-600">Sélectionnez votre marge</p>
               </div>
             </div>
             <div class="text-center">
@@ -218,24 +219,28 @@
 
         <!-- Affichage du calcul détaillé -->
         <div class="mt-6 pt-6 border-t-2 border-indigo-200">
-          <div class="grid grid-cols-4 gap-4 text-center">
+          <div class="flex items-center justify-center gap-4 flex-wrap">
             <div class="bg-white rounded-xl p-4 shadow">
               <p class="text-xs text-gray-600 mb-1">Prix de base</p>
-              <p v-if="tauxRemise > 0" class="text-2xl font-bold text-gray-400 line-through">{{ prixBase }} €</p>
-              <p v-else class="text-2xl font-bold text-gray-900">{{ prixBase }} €</p>
+              <p class="text-2xl font-bold text-gray-900">{{ prixBase }} €</p>
             </div>
-            <div class="bg-white rounded-xl p-4 shadow flex items-center justify-center">
+            <div class="flex items-center justify-center">
               <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
               </svg>
             </div>
             <div class="bg-white rounded-xl p-4 shadow">
               <p class="text-xs text-gray-600 mb-1">Remise {{ tauxRemise }}%</p>
-              <p class="text-2xl font-bold text-red-600">-{{ formatNumber((prixBase || 732) * tauxRemise / 100) }} €</p>
+              <p class="text-2xl font-bold text-red-600">-{{ formatNumber(prixBase * tauxRemise / 100) }} €</p>
             </div>
-            <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 shadow border-2 border-green-300">
+            <div class="flex items-center justify-center">
+              <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow">
               <p class="text-xs text-gray-600 mb-1">Prix final</p>
-              <p class="text-3xl font-bold text-green-600">{{ formatNumber(prixAvecRemise) }} €</p>
+              <p class="text-3xl font-bold text-red-600">{{ formatNumber(prixAvecRemise) }} €</p>
             </div>
           </div>
           
@@ -246,7 +251,7 @@
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
               </svg>
               <p class="text-lg font-bold">
-                {{ valeurOfferteMessage }}
+                {{ nombreLicences >= 50 ? `Kit de Communication (${adminStore.kitCommunication.valeur50plus || 360} €) OU Écran Digital (${adminStore.kitDigital.valeur50plus || 360} €) inclus !` : `Kit de Communication inclus ! (Valeur : ${adminStore.kitCommunication.valeur1_49 || 257} € par licence)` }}
               </p>
               <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
@@ -294,7 +299,7 @@
 
             <div class="bg-gray-50 rounded-xl p-6 mb-6">
               <div class="flex items-baseline justify-center gap-2 mb-2">
-                <span v-if="tauxRemise > 0" class="text-2xl text-gray-400 line-through">{{ prixBase }} €</span>
+                <span v-if="tauxRemise > 0" class="text-2xl text-gray-400 line-through">{{ formatNumber(prixBase) }} €</span>
                 <span class="text-5xl font-bold text-indigo-600">{{ formatNumber(prixAvecRemise) }} €</span>
                 <span class="text-gray-600">/an</span>
               </div>
@@ -373,7 +378,7 @@
 
             <div class="bg-gray-50 rounded-xl p-6 mb-4">
               <div class="flex items-baseline justify-center gap-2 mb-2">
-                <span v-if="tauxRemise > 0" class="text-2xl text-gray-400 line-through">{{ prixBase }} €</span>
+                <span v-if="tauxRemise > 0" class="text-2xl text-gray-400 line-through">{{ formatNumber(prixBase) }} €</span>
                 <span class="text-5xl font-bold text-indigo-600">{{ formatNumber(prixAvecRemise) }} €</span>
                 <span class="text-gray-600">/an</span>
               </div>
@@ -438,7 +443,7 @@
 
             <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 mb-4 border-2 border-purple-200">
               <div class="flex items-baseline justify-center gap-2 mb-2">
-                <span v-if="tauxRemise > 0" class="text-2xl text-gray-400 line-through">{{ prixBase }} €</span>
+                <span v-if="tauxRemise > 0" class="text-2xl text-gray-400 line-through">{{ formatNumber(prixAvecMarge) }} €</span>
                 <span class="text-5xl font-bold text-purple-600">{{ formatNumber(prixAvecRemise) }} €</span>
                 <span class="text-gray-600">/an</span>
               </div>
@@ -447,7 +452,7 @@
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                 </svg>
-                Économie : {{ formatNumber(prixBase - prixAvecRemise) }} € (-{{ tauxRemise }}%)
+                Économie : {{ formatNumber(prixAvecMarge - prixAvecRemise) }} € (-{{ tauxRemise }}%)
               </div>
             </div>
 
@@ -1225,7 +1230,7 @@ const participations = ref({
   partenaire: 120
 })
 
-// Calcul du prix avec remise
+// Calcul du prix avec remise (appliquée sur le prix de base)
 const prixAvecRemise = computed(() => {
   const base = prixBase.value || 732
   return Math.round(base * (1 - tauxRemise.value / 100))
@@ -1457,6 +1462,7 @@ watch(() => adminStore.prixConfig, (newConfig) => {
     })
   }
 }, { deep: true })
+
 </script>
 
 <style>

@@ -1,15 +1,16 @@
 <template>
   <div class="max-w-7xl mx-auto">
     <!-- Bouton Retour -->
-    <NuxtLink 
-      to="/admin/dashboard"
+    <button 
+      type="button"
+      @click="goToDashboard"
       class="inline-flex items-center gap-2 text-gray-600 hover:text-indigo-600 mb-6 font-semibold transition-colors group"
     >
       <svg class="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="currentColor" viewBox="0 0 20 20">
         <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
       </svg>
       Retour au Dashboard
-    </NuxtLink>
+    </button>
 
     <!-- Header avec bouton sauvegarder -->
     <div class="bg-white rounded-2xl shadow-lg p-8 mb-8 flex items-center justify-between">
@@ -202,7 +203,7 @@
               <input 
                 v-model="detail.titre"
                 type="text"
-                placeholder="Ex: Écran Samsung 43\""
+                placeholder="Ex: Écran Samsung 43&quot;"
                 class="w-full px-4 py-3 bg-white border-2 border-purple-200 rounded-xl font-semibold text-gray-900 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all"
               >
             </div>
@@ -249,6 +250,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAdminStore } from '~/stores/admin'
 
 definePageMeta({
@@ -257,6 +259,11 @@ definePageMeta({
 })
 
 const adminStore = useAdminStore()
+const router = useRouter()
+
+const goToDashboard = () => {
+  router.push('/admin/dashboard')
+}
 
 const formData = ref({
   valeur50plus: 360,

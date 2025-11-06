@@ -67,6 +67,39 @@ export const useAdminStore = defineStore('admin', {
         premium: { min: 100, max: 199, pourcentage: 7.5, nom: 'Premium' },
         enterprise: { min: 200, max: 9999, pourcentage: 10.0, nom: 'Enterprise' }
       }
+    },
+    // Configuration des Marges de Profit
+    profitMargins: {
+      defaultMargin: 'tarifs-public', // Marge par défaut appliquée
+      margins: {
+        'tarifs-public': {
+          id: 'tarifs-public',
+          name: 'Tarifs Public',
+          description: 'Prix de vente au grand public',
+          color: 'blue',
+          icon: 'users',
+          multiplier: 1.0, // Multiplicateur par rapport au prix de base
+          isDefault: true
+        },
+        'tarifs-revendeur': {
+          id: 'tarifs-revendeur',
+          name: 'Tarifs Revendeur',
+          description: 'Prix préférentiels pour les revendeurs',
+          color: 'green',
+          icon: 'store',
+          multiplier: 0.8, // 20% de remise par rapport au public
+          isDefault: false
+        },
+        'tarifs-grand-compte': {
+          id: 'tarifs-grand-compte',
+          name: 'Tarifs Grand Compte',
+          description: 'Prix négociés pour les gros volumes',
+          color: 'purple',
+          icon: 'building',
+          multiplier: 0.6, // 40% de remise par rapport au public
+          isDefault: false
+        }
+      }
     }
   }),
   
@@ -77,6 +110,19 @@ export const useAdminStore = defineStore('admin', {
     
     getPalierByLicences: (state) => (nombreLicences) => {
       return state.prixConfig.paliers.find(p => nombreLicences >= p.min && nombreLicences <= p.max)
+    },
+    
+    // Getters pour les marges de profit
+    getCurrentMargin: (state) => {
+      return state.profitMargins.margins[state.profitMargins.defaultMargin]
+    },
+    
+    getAllMargins: (state) => {
+      return Object.values(state.profitMargins.margins)
+    },
+    
+    getMarginById: (state) => (marginId) => {
+      return state.profitMargins.margins[marginId]
     }
   },
   
@@ -189,6 +235,12 @@ export const useAdminStore = defineStore('admin', {
         if (sagaConfig) {
           this.sagaConfig = JSON.parse(sagaConfig)
         }
+        
+        // Charger Configuration Marges de Profit
+        const profitMargins = localStorage.getItem('saii_profit_margins')
+        if (profitMargins) {
+          this.profitMargins = JSON.parse(profitMargins)
+        }
       }
     },
     
@@ -208,6 +260,83 @@ export const useAdminStore = defineStore('admin', {
       } else if (type === 'digital') {
         this.kitDigital.images.splice(index, 1)
       }
+    },
+    
+    // Actions pour les marges de profit
+    updateProfitMargins(data) {
+      this.profitMargins = { ...this.profitMargins, ...data }
+      // Sauvegarder dans localStorage
+      if (process.client) {
+        localStorage.setItem('saii_profit_margins', JSON.stringify(this.profitMargins))
+      }
+    },
+    
+    setDefaultMargin(marginId) {
+      // Désactiver l'ancienne marge par défaut
+      Object.values(this.profitMargins.margins).forEach(margin => {
+        margin.isDefault = false
+      })
+      
+      // Activer la nouvelle marge par défaut
+      if (this.profitMargins.margins[marginId]) {
+        this.profitMargins.margins[marginId].isDefault = true
+        this.profitMargins.defaultMargin = marginId
+      }
+      
+      // Sauvegarder
+      if (process.client) {
+        localStorage.setItem('saii_profit_margins', JSON.stringify(this.profitMargins))
+      }
+    },
+    
+    addMargin(marginData) {
+      const newId = marginData.id || `margin-${Date.now()}`
+      this.profitMargins.margins[newId] = {
+        id: newId,
+        name: marginData.name,
+        description: marginData.description,
+        color: marginData.color || 'gray',
+        icon: marginData.icon || 'tag',
+        multiplier: marginData.multiplier || 1.0,
+        isDefault: false
+      }
+      
+      // Sauvegarder
+      if (process.client) {
+        localStorage.setItem('saii_profit_margins', JSON.stringify(this.profitMargins))
+      }
+    },
+    
+    updateMargin(marginId, marginData) {
+      if (this.profitMargins.margins[marginId]) {
+        this.profitMargins.margins[marginId] = {
+          ...this.profitMargins.margins[marginId],
+          ...marginData
+        }
+        
+        // Sauvegarder
+        if (process.client) {
+          localStorage.setItem('saii_profit_margins', JSON.stringify(this.profitMargins))
+        }
+      }
+    },
+    
+    deleteMargin(marginId) {
+      // Ne pas supprimer la marge par défaut
+      if (this.profitMargins.defaultMargin === marginId) {
+        return false
+      }
+      
+      if (this.profitMargins.margins[marginId]) {
+        delete this.profitMargins.margins[marginId]
+        
+        // Sauvegarder
+        if (process.client) {
+          localStorage.setItem('saii_profit_margins', JSON.stringify(this.profitMargins))
+        }
+        return true
+      }
+      return false
     }
   }
 })

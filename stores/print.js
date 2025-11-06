@@ -322,6 +322,15 @@ export const usePrintStore = defineStore('print', {
       }
     ],
     
+    // Configuration Adhésifs (sélection de matières configurées côté back)
+    adhesifsConfig: {
+      enabled: true,
+      // IDs de matières utilisables comme adhésifs (doivent exister dans supports)
+      matieres: ['opaque'],
+      // Supports cibles sur lesquels on peut cumuler l'adhésif
+      targetSupports: ['panneau']
+    },
+    
     // Configuration des prix
     prixConfig: {
       margeMin: 0.3, // 30% de marge minimum
@@ -427,6 +436,28 @@ export const usePrintStore = defineStore('print', {
       return state.accessoires.find(accessoire => accessoire.id === id)
     },
     
+    // Liste aplatie des matières adhésives disponibles selon la config
+    getAdhesifMatieres: (state) => () => {
+      if (!state.adhesifsConfig?.enabled) return []
+      const ids = new Set(state.adhesifsConfig.matieres || [])
+      const result = []
+      state.supports.forEach((support) => {
+        (support.matieres || []).forEach((m) => {
+          if (ids.has(m.id)) {
+            result.push({ support, matiere: m })
+          }
+        })
+      })
+      return result
+    },
+    getAdhesifById: (state) => (matiereId) => {
+      for (const support of state.supports) {
+        const m = (support.matieres || []).find(mm => mm.id === matiereId)
+        if (m) return { support, matiere: m }
+      }
+      return null
+    },
+    
     // Calcul de remise selon la quantité
     getRemiseVolume: (state) => (quantite) => {
       const seuils = Object.keys(state.prixConfig.remiseVolume)
@@ -458,6 +489,11 @@ export const usePrintStore = defineStore('print', {
   },
   
   actions: {
+    // Mise à jour config adhésifs
+    updateAdhesifsConfig(newConfig) {
+      this.adhesifsConfig = { ...this.adhesifsConfig, ...newConfig }
+      this.saveToLocalStorage()
+    },
     // Gestion des matières
     addMatiere(supportId, matiere) {
       const support = this.supports.find(s => s.id === supportId)
@@ -718,6 +754,7 @@ export const usePrintStore = defineStore('print', {
           options: this.options,
           faconnages: this.faconnages,
           accessoires: this.accessoires,
+          adhesifsConfig: this.adhesifsConfig,
           prixConfig: this.prixConfig,
           coutsConfig: this.coutsConfig
         }))
@@ -735,6 +772,7 @@ export const usePrintStore = defineStore('print', {
         this.options = data.options || this.options
         this.faconnages = data.faconnages || this.faconnages
         this.accessoires = data.accessoires || this.accessoires
+        this.adhesifsConfig = data.adhesifsConfig || this.adhesifsConfig
         this.prixConfig = data.prixConfig || this.prixConfig
         this.coutsConfig = data.coutsConfig || this.coutsConfig
         }

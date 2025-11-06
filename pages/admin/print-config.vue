@@ -130,6 +130,123 @@
 
         <!-- Tab Content -->
         <div class="bg-white rounded-xl border border-gray-200 p-8">
+          <!-- Adhésifs -->
+          <div v-if="activeTab === 'adhesifs'">
+            <div class="mb-6">
+              <h2 class="text-xl font-bold text-gray-900">Configuration des Adhésifs</h2>
+              <p class="text-sm text-gray-600">Sélectionnez les matières adhésives et sur quels supports elles peuvent être cumulées</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <!-- Activation -->
+              <div class="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Activation</h3>
+                <label class="flex items-center gap-3 p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-indigo-300 transition-colors">
+                  <input type="checkbox" v-model="adhesifsForm.enabled" class="w-5 h-5 text-indigo-600" />
+                  <div>
+                    <p class="font-medium">Activer les adhésifs</p>
+                    <p class="text-sm text-gray-600">Affiche l'adhésif dans le configurateur</p>
+                  </div>
+                </label>
+              </div>
+
+              <!-- Supports cibles -->
+              <div class="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Supports autorisés</h3>
+                <div class="space-y-2 max-h-64 overflow-y-auto">
+                  <label
+                    v-for="support in printStore.supports"
+                    :key="support.id"
+                    class="flex items-center justify-between p-3 border-2 border-gray-100 rounded-lg hover:border-indigo-200 transition-colors"
+                  >
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 rounded-lg flex items-center justify-center" :class="support.color">
+                        <PrintIcon :type="getSupportIconType(support.id)" size="xs" color="primary" />
+                      </div>
+                      <span class="text-sm font-medium text-gray-800">{{ support.nom }}</span>
+                    </div>
+                    <input type="checkbox" :value="support.id" v-model="adhesifsForm.targetSupports" class="w-5 h-5 text-indigo-600" />
+                  </label>
+                </div>
+              </div>
+
+              <!-- Matières adhésives -->
+              <div class="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-6 lg:col-span-1">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Matières adhésives</h3>
+                <div class="space-y-2 max-h-64 overflow-y-auto">
+                  <div v-for="item in allMatieres" :key="item.id" class="p-3 border-2 border-gray-100 rounded-lg hover:border-indigo-200 transition-colors">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-3 h-3 rounded-full" :style="{ backgroundColor: item.couleur }"></div>
+                        <div class="truncate">
+                          <p class="text-sm font-medium text-gray-800 truncate">{{ item.nom }}</p>
+                          <p class="text-xs text-gray-500 truncate">{{ item.supportNom }}</p>
+                        </div>
+                      </div>
+                      <input type="checkbox" :value="item.id" v-model="adhesifsForm.matieres" class="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div class="mt-2 flex items-center justify-between gap-2">
+                      <label class="text-xs text-gray-600">Prix d'achat (€/m²)</label>
+                      <div class="flex items-center gap-2">
+                        <input
+                          :value="item.prixParM2"
+                          @change="updateSupportPrix(item.supportId, item.id, Number($event.target.value))"
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          class="w-20 p-1 border border-gray-300 rounded text-xs text-right"
+                        />
+                        <span class="text-xs text-gray-500">€</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Ajouter un adhésif -->
+              <div class="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-6 lg:col-span-3">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Ajouter un nouvel adhésif</h3>
+                <div class="grid md:grid-cols-5 gap-3 items-end">
+                  <div class="md:col-span-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Support</label>
+                    <select v-model="newAdhesif.supportId" class="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-indigo-500">
+                      <option v-for="s in printStore.supports" :key="s.id" :value="s.id">{{ s.nom }}</option>
+                    </select>
+                  </div>
+                  <div class="md:col-span-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+                    <input v-model="newAdhesif.nom" type="text" class="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-indigo-500" placeholder="Ex: Adhésif opaque" />
+                  </div>
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <input v-model="newAdhesif.description" type="text" class="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-indigo-500" placeholder="Ex: Vinyle opaque longue durée" />
+                  </div>
+                  <div class="md:col-span-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Prix achat €/m²</label>
+                    <input v-model.number="newAdhesif.prixParM2" type="number" step="0.1" min="0" class="w-full p-2 border-2 border-gray-200 rounded-lg focus:border-indigo-500" />
+                  </div>
+                  <div class="md:col-span-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Couleur</label>
+                    <input v-model="newAdhesif.couleur" type="color" class="w-full h-[42px] p-1 border-2 border-gray-200 rounded-lg" />
+                  </div>
+                  <div class="md:col-span-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Ajouter aux adhésifs</label>
+                    <input v-model="newAdhesif.addToConfig" type="checkbox" class="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div class="md:col-span-1">
+                    <button @click="createAdhesif" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold">Ajouter</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <button @click="saveAdhesifs" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2">
+                <PrintIcon type="save" size="sm" color="primary" />
+                Sauvegarder les Adhésifs
+              </button>
+            </div>
+          </div>
           <!-- Catégories -->
           <div v-if="activeTab === 'categories'">
             <div class="flex items-center justify-between mb-6">
@@ -1332,7 +1449,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { usePrintStore } from '~/stores/print'
 import PrintIcon from '~/components/PrintIcon.vue'
 
@@ -1346,6 +1463,7 @@ const printStore = usePrintStore()
 const tabs = [
   { id: 'categories', label: 'Catégories', icon: 'category' },
   { id: 'supports', label: 'Supports', icon: 'panneau' },
+  { id: 'adhesifs', label: 'Adhésifs', icon: 'vitrine' },
   { id: 'options', label: 'Options', icon: 'settings' },
   { id: 'faconnages', label: 'Façonnages', icon: 'ourlet' },
   { id: 'accessoires', label: 'Accessoires', icon: 'structure' },
@@ -1370,6 +1488,24 @@ const prixConfig = reactive({
     express: 25,
     gratuit: 200
   }
+})
+
+// Formulaire Adhésifs (admin)
+const adhesifsForm = reactive({
+  enabled: true,
+  matieres: [],
+  targetSupports: []
+})
+
+// Matières à afficher (à plat) pour la sélection adhésifs
+const allMatieres = computed(() => {
+  const list = []
+  for (const support of printStore.supports) {
+    for (const m of (support.matieres || [])) {
+      list.push({ id: m.id, nom: m.nom, couleur: m.couleur, supportNom: support.nom, supportId: support.id, prixParM2: m.prixParM2 })
+    }
+  }
+  return list
 })
 
 // Configuration des coûts
@@ -1461,6 +1597,16 @@ const optionForm = reactive({
   description: '',
   prix: 0,
   icon: 'settings'
+})
+
+// Création rapide d'un adhésif
+const newAdhesif = reactive({
+  supportId: '',
+  nom: '',
+  description: '',
+  prixParM2: 0,
+  couleur: '#80CBC4',
+  addToConfig: true
 })
 
 // Actions Matière
@@ -1694,6 +1840,29 @@ const deleteOption = (optionId) => {
   }
 }
 
+const createAdhesif = () => {
+  if (!newAdhesif.supportId || !newAdhesif.nom) {
+    alert('Sélectionnez un support et renseignez un nom.')
+    return
+  }
+  const matiere = {
+    id: Date.now().toString(),
+    nom: newAdhesif.nom,
+    description: newAdhesif.description || 'Adhésif',
+    prixParM2: newAdhesif.prixParM2 || 0,
+    couleur: newAdhesif.couleur || '#80CBC4'
+  }
+  printStore.addMatiere(newAdhesif.supportId, matiere)
+  if (newAdhesif.addToConfig) {
+    if (!adhesifsForm.matieres.includes(matiere.id)) adhesifsForm.matieres.push(matiere.id)
+    if (!adhesifsForm.targetSupports.includes(newAdhesif.supportId)) adhesifsForm.targetSupports.push(newAdhesif.supportId)
+  }
+  // Reset formulaire
+  newAdhesif.nom = ''
+  newAdhesif.description = ''
+  newAdhesif.prixParM2 = 0
+}
+
 // Actions pour les autres éléments (à implémenter de manière similaire)
 const openFaconnageModal = () => {
   // À implémenter
@@ -1728,6 +1897,15 @@ const savePrixConfig = () => {
   alert('Configuration des prix sauvegardée !')
 }
 
+const saveAdhesifs = () => {
+  printStore.updateAdhesifsConfig({
+    enabled: adhesifsForm.enabled,
+    matieres: [...adhesifsForm.matieres],
+    targetSupports: [...adhesifsForm.targetSupports]
+  })
+  alert('Configuration des adhésifs sauvegardée !')
+}
+
 // Actions pour les coûts
 const saveCoutsConfig = () => {
   printStore.updateCoutsConfig(coutsConfig)
@@ -1747,5 +1925,10 @@ onMounted(() => {
   Object.assign(prixConfig, printStore.prixConfig)
   // Charger la configuration des coûts
   Object.assign(coutsConfig, printStore.coutsConfig)
+  // Charger la configuration adhésifs
+  const adh = printStore.adhesifsConfig || { enabled: false, matieres: [], targetSupports: [] }
+  adhesifsForm.enabled = !!adh.enabled
+  adhesifsForm.matieres = [...(adh.matieres || [])]
+  adhesifsForm.targetSupports = [...(adh.targetSupports || [])]
 })
 </script>

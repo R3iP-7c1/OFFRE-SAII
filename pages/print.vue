@@ -57,6 +57,36 @@
             </h3>
             
             <!-- Type de Support -->
+             <!-- Adhésifs configurés -->
+             <div class="mb-8" v-if="adhesifItems.length">
+               <label class="block text-lg font-semibold text-gray-900 mb-4">Adhésifs (configuré)</label>
+               <div class="grid grid-cols-2 gap-3">
+                 <button
+                   v-for="item in adhesifItems"
+                   :key="item.matiere.id"
+                   @click="selectAdhesif(item)"
+                   :class="[
+                     'p-4 rounded-xl border-2 transition-all text-left group hover:scale-105',
+                     selectedMatiere?.id === item.matiere.id
+                       ? 'border-cyan-500 bg-cyan-50 text-cyan-900 shadow-lg'
+                       : 'border-gray-200 hover:border-gray-300 text-gray-700 hover:shadow-md'
+                   ]"
+                 >
+                   <div class="flex items-center justify-between">
+                     <div class="flex items-center gap-3">
+                       <div class="w-6 h-6 rounded-full" :style="{ backgroundColor: item.matiere.couleur }"></div>
+                       <div>
+                         <p class="font-semibold">{{ item.matiere.nom }}</p>
+                         <p class="text-xs opacity-75">{{ item.support.nom }}</p>
+                       </div>
+                     </div>
+                     <span class="text-lg font-bold text-green-600">{{ item.matiere.prixParM2 }}€/m²</span>
+                   </div>
+                 </button>
+               </div>
+             </div>
+
+             <!-- Type de Support -->
             <div class="mb-8">
               <label class="block text-lg font-semibold text-gray-900 mb-4">Type de Support</label>
               <div class="grid grid-cols-2 gap-3">
@@ -115,34 +145,125 @@
 
             <!-- Dimensions -->
             <div class="mb-8">
-              <label class="block text-lg font-semibold text-gray-900 mb-4">Dimensions (cm)</label>
+              <div class="flex items-center justify-between mb-4">
+                <label class="block text-lg font-semibold text-gray-900">Dimensions</label>
+                <div class="flex items-center gap-2">
+                  <button
+                    @click="unite = 'cm'"
+                    :class="[
+                      'px-4 py-2 rounded-lg font-medium transition-colors',
+                      unite === 'cm'
+                        ? 'bg-cyan-500 text-white shadow-md'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ]"
+                  >
+                    cm
+                  </button>
+                  <button
+                    @click="unite = 'mm'"
+                    :class="[
+                      'px-4 py-2 rounded-lg font-medium transition-colors',
+                      unite === 'mm'
+                        ? 'bg-cyan-500 text-white shadow-md'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ]"
+                  >
+                    mm
+                  </button>
+                </div>
+              </div>
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm text-gray-600 mb-2">Largeur</label>
+                  <label class="block text-sm text-gray-600 mb-2">Largeur ({{ unite }})</label>
                   <input
                     v-model.number="dimensions.largeur"
                     type="number"
                     min="1"
-                    step="0.1"
+                    :step="unite === 'mm' ? '1' : '0.1'"
                     class="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-cyan-500 focus:outline-none transition-colors"
-                    placeholder="Ex: 120"
+                    :placeholder="unite === 'mm' ? 'Ex: 1200' : 'Ex: 120'"
                   />
                 </div>
                 <div>
-                  <label class="block text-sm text-gray-600 mb-2">Hauteur</label>
+                  <label class="block text-sm text-gray-600 mb-2">Hauteur ({{ unite }})</label>
                   <input
                     v-model.number="dimensions.hauteur"
                     type="number"
                     min="1"
-                    step="0.1"
+                    :step="unite === 'mm' ? '1' : '0.1'"
                     class="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-cyan-500 focus:outline-none transition-colors"
-                    placeholder="Ex: 80"
+                    :placeholder="unite === 'mm' ? 'Ex: 800' : 'Ex: 80'"
                   />
                 </div>
               </div>
               <div class="mt-2 text-sm text-gray-500">
                 Surface: {{ surfaceM2 }} m²
               </div>
+            </div>
+
+             <!-- Adhésif cumulé (panneau uniquement) -->
+             <div class="mb-8" v-if="canAddAdhesif">
+               <label class="block text-lg font-semibold text-gray-900 mb-2">Adhésif</label>
+               <label class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-gray-300 transition-colors">
+                 <input type="checkbox" v-model="addAdhesif" class="w-5 h-5 text-cyan-600" />
+                 <div>
+                   <p class="font-medium text-gray-900">Ajouter l'adhésif {{ primaryAdhesif?.matiere?.nom || 'opaque' }}</p>
+                   <p class="text-sm text-gray-600">Applicable uniquement sur les supports Panneaux</p>
+                 </div>
+               </label>
+             </div>
+
+            <!-- Tarifs / Marges (Print uniquement) -->
+            <div class="mb-8">
+              <label class="block text-lg font-semibold text-gray-900 mb-4">Type de tarif</label>
+              <div class="space-y-2">
+                <label
+                  v-for="tarif in tarifsDisponibles"
+                  :key="tarif.id"
+                  class="flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer hover:border-gray-300 transition-colors"
+                  :class="selectedTarif === tarif.id ? 'border-cyan-500 bg-cyan-50' : 'border-gray-200'"
+                >
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg text-white flex items-center justify-center" :class="getTarifColorClass(tarif.color)">€</div>
+                    <div>
+                      <p class="font-medium">{{ tarif.name }}</p>
+                      <p class="text-xs text-gray-600">Multiplicateur {{ tarif.multiplier }}x</p>
+                    </div>
+                  </div>
+                  <input type="radio" name="tarif" :value="tarif.id" v-model="selectedTarif" />
+                </label>
+
+                <div class="p-4 border-2 border-gray-200 rounded-lg">
+                  <label class="flex items-center gap-2 font-semibold text-gray-900 mb-2">
+                    <input type="checkbox" v-model="manuelActif" class="w-4 h-4"/>
+                    Mode manuel
+                  </label>
+                  <div class="grid grid-cols-2 gap-3" :class="manuelActif ? '' : 'opacity-50'">
+                    <div>
+                      <label class="block text-xs text-gray-600 mb-1">Multiplicateur</label>
+                      <input type="number" step="0.05" min="0.1" v-model.number="multiplicateurManuel" :disabled="!manuelActif"
+                             class="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-cyan-500 focus:outline-none"/>
+                    </div>
+                    <div>
+                      <label class="block text-xs text-gray-600 mb-1">Marge (%)</label>
+                      <input type="number" step="1" min="0" v-model.number="margePourcent" :disabled="!manuelActif"
+                             class="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-cyan-500 focus:outline-none"/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Livraison -->
+            <div class="mb-8">
+              <label class="block text-lg font-semibold text-gray-900 mb-2">Livraison</label>
+              <label class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-gray-300 transition-colors">
+                <input type="checkbox" v-model="includeShipping" class="w-5 h-5 text-cyan-600" />
+                <div>
+                  <p class="font-medium text-gray-900">Inclure les frais de livraison</p>
+                  <p class="text-sm text-gray-600">Décochez pour retrait ou devis hors frais</p>
+                </div>
+              </label>
             </div>
 
             <!-- Type d'impression -->
@@ -343,7 +464,7 @@
                 </div>
                 <h4 class="text-lg font-bold text-gray-900">{{ selectedSupport?.nom || 'Sélectionnez un support' }}</h4>
                 <p class="text-sm text-gray-600">{{ selectedMatiere?.nom || 'Sélectionnez une matière' }}</p>
-                <p class="text-sm text-gray-500">{{ dimensions.largeur }}cm × {{ dimensions.hauteur }}cm</p>
+                <p class="text-sm text-gray-500">{{ dimensions.largeur }}{{ unite }} × {{ dimensions.hauteur }}{{ unite }}</p>
                 <p class="text-sm text-gray-500">{{ surfaceM2 }} m²</p>
               </div>
             </div>
@@ -400,10 +521,10 @@
             <div class="bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl p-6 text-white mb-6">
               <div class="text-center">
                 <p class="text-lg opacity-90 mb-2">Prix total</p>
-                <p class="text-4xl font-bold">{{ prixTotal }}€</p>
-                <p class="text-sm opacity-75 mt-1">{{ prixUnitaire }}€ par unité</p>
+                <p class="text-4xl font-bold">{{ formatPrice(prixTotal) }}€</p>
+                <p class="text-sm opacity-75 mt-1">{{ formatPrice(prixUnitaire) }}€ par unité</p>
                 <div class="text-xs opacity-60 mt-2">
-                  Coût: {{ coutRevientTotal }}€ | Marge: {{ margeReelleTotal.toFixed(1) }}%
+                  Coût: {{ formatPrice(coutRevientTotal) }}€ | Marge: {{ margeReelleTotal.toFixed(1) }}%
                 </div>
                 <div v-if="fraisPort === 0" class="mt-2 text-xs bg-green-500 bg-opacity-30 rounded-full px-3 py-1">
                   ✓ Livraison gratuite
@@ -543,15 +664,31 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { usePrintStore } from '~/stores/print'
+import { useAdminStore } from '~/stores/admin'
 import PrintIcon from '~/components/PrintIcon.vue'
 
 const printStore = usePrintStore()
+const adminStore = useAdminStore()
+
+// Utilitaire d'affichage prix (arrondi 2 décimales, format fr-FR)
+const formatPrice = (value) => {
+  const num = typeof value === 'number' ? value : Number(value || 0)
+  try {
+    return new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(num)
+  } catch (_) {
+    return Number.isFinite(num) ? num.toFixed(2) : '0.00'
+  }
+}
 
 // État de la configuration
 const selectedSupport = ref(null)
 const selectedMatiere = ref(null)
+const unite = ref('cm') // 'cm' ou 'mm'
 const dimensions = ref({
   largeur: 120,
   hauteur: 80
@@ -562,10 +699,108 @@ const quantite = ref(1)
 const optionsSelectionnees = ref([])
 const faconnagesSelectionnes = ref([])
 const accessoiresSelectionnes = ref([])
+// Inclure les frais de livraison dans le calcul
+const includeShipping = ref(true)
+
+// Conversion automatique des dimensions lors du changement d'unité
+let isConverting = false
+watch(unite, (newUnite, oldUnite) => {
+  if (isConverting || !oldUnite) return
+  isConverting = true
+  
+  // Convertir les dimensions
+  if (oldUnite === 'cm' && newUnite === 'mm') {
+    // cm → mm : multiplier par 10
+    dimensions.value.largeur = Math.round(dimensions.value.largeur * 10)
+    dimensions.value.hauteur = Math.round(dimensions.value.hauteur * 10)
+  } else if (oldUnite === 'mm' && newUnite === 'cm') {
+    // mm → cm : diviser par 10, arrondir à 1 décimale
+    dimensions.value.largeur = Math.round(dimensions.value.largeur / 10 * 10) / 10
+    dimensions.value.hauteur = Math.round(dimensions.value.hauteur / 10 * 10) / 10
+  }
+  
+  isConverting = false
+})
+
+// Adhésifs depuis la config back
+const adhesifItems = computed(() => printStore.getAdhesifMatieres())
+const selectAdhesif = (item) => {
+  // Sélectionne le support et la matière associés
+  selectedSupport.value = item.support
+  selectedMatiere.value = item.matiere
+}
+
+// Règle métier: possibilité de cumuler adhésif opaque sur panneaux uniquement
+const adhesifConfig = computed(() => printStore.adhesifsConfig || { enabled: false })
+const canAddAdhesif = computed(() => {
+  if (!adhesifConfig.value.enabled || !selectedSupport.value) return false
+  return (adhesifConfig.value.targetSupports || []).includes(selectedSupport.value.id)
+})
+const addAdhesif = ref(false)
+// ID d'adhésif principal à cumuler (par défaut premier de la config)
+const primaryAdhesifId = computed(() => (adhesifConfig.value.matieres || [])[0])
+const primaryAdhesif = computed(() => printStore.getAdhesifById(primaryAdhesifId.value))
+
+// Tarifs / Marges (uniquement pour Print)
+const tarifsDisponibles = computed(() => {
+  const margins = adminStore.profitMargins?.margins || {}
+  return Object.values(margins)
+})
+const selectedTarif = ref(adminStore.profitMargins?.defaultMargin || 'tarifs-public')
+const manuelActif = ref(false)
+const multiplicateurManuel = ref(1.0)
+
+// Synchroniser le multiplicateur manuel avec le tarif choisi quand mode manuel désactivé
+watch(selectedTarif, (id) => {
+  if (!manuelActif.value) {
+    const m = adminStore.profitMargins?.margins?.[id]?.multiplier || 1.0
+    multiplicateurManuel.value = m
+  }
+}, { immediate: true })
+
+// Marge utilisée pour les calculs Print
+const selectedMultiplier = computed(() => {
+  return manuelActif.value
+    ? multiplicateurManuel.value
+    : (adminStore.profitMargins?.margins?.[selectedTarif.value]?.multiplier || 1.0)
+})
+const selectedMarge = computed(() => Math.max(0, (selectedMultiplier.value || 1) - 1))
+
+// Edition via pourcentage
+const margePourcent = computed({
+  get: () => Math.round((selectedMultiplier.value - 1) * 100),
+  set: (v) => {
+    const pct = Number(v) || 0
+    multiplicateurManuel.value = 1 + pct / 100
+  }
+})
+
+const getTarifColorClass = (color) => {
+  const map = {
+    blue: 'bg-blue-500',
+    green: 'bg-green-500',
+    purple: 'bg-purple-500',
+    orange: 'bg-orange-500',
+    red: 'bg-red-500',
+    pink: 'bg-pink-500',
+    indigo: 'bg-indigo-500',
+    yellow: 'bg-yellow-500',
+    gray: 'bg-gray-500'
+  }
+  return map[color] || 'bg-gray-500'
+}
 
 // Calculs de prix
 const surfaceM2 = computed(() => {
-  return ((dimensions.value.largeur * dimensions.value.hauteur) / 10000).toFixed(2)
+  const largeur = dimensions.value.largeur || 0
+  const hauteur = dimensions.value.hauteur || 0
+  if (largeur === 0 || hauteur === 0) return '0.00'
+  
+  // Conversion selon l'unité choisie
+  // Si mm: mm² → m² = / 1 000 000
+  // Si cm: cm² → m² = / 10 000
+  const facteurConversion = unite.value === 'mm' ? 1000000 : 10000
+  return ((largeur * hauteur) / facteurConversion).toFixed(2)
 })
 
 const prixSupport = computed(() => {
@@ -637,8 +872,18 @@ const prixAccessoires = computed(() => {
   }, 0)
 })
 
+const prixAdhesif = computed(() => {
+  if (!addAdhesif.value || !primaryAdhesif.value) return 0
+  const prixM2 = primaryAdhesif.value.matiere?.prixParM2 || 0
+  return Math.round(prixM2 * parseFloat(surfaceM2.value))
+})
+
+const prixUnitairePublic = computed(() => {
+  return prixSupport.value + prixRectoVerso.value + prixBlancSoutien.value + prixOptions.value + prixFaconnages.value + prixAccessoires.value + prixAdhesif.value
+})
+
 const prixUnitaire = computed(() => {
-  return prixSupport.value + prixRectoVerso.value + prixBlancSoutien.value + prixOptions.value + prixFaconnages.value + prixAccessoires.value
+  return Math.round(prixUnitairePublic.value * selectedMultiplier.value * 100) / 100
 })
 
 const remiseVolume = computed(() => {
@@ -663,6 +908,7 @@ const prixRemiseVolume = computed(() => {
 })
 
 const fraisPort = computed(() => {
+  if (!includeShipping.value) return 0
   // Calcul du prix avec marge maximale sur le coût de revient total
   const prixAvecMarge = printStore.calculerPrixVenteTotalAvecMarge(coutRevientTotal.value)
   
@@ -674,7 +920,7 @@ const fraisPort = computed(() => {
 })
 
 const prixTotal = computed(() => {
-  // Calcul du prix avec marge maximale sur le coût de revient total
+  // Calcul du prix avec marge maximale sur le coût de revient total (tarif public)
   const prixAvecMarge = printStore.calculerPrixVenteTotalAvecMarge(coutRevientTotal.value)
   
   // Application des remises par volume
@@ -682,7 +928,10 @@ const prixTotal = computed(() => {
   const prixApresRemise = prixAvecMarge - remiseVolume
   
   // Ajout des frais de port
-  return prixApresRemise + fraisPort.value
+  const totalPublic = prixApresRemise + fraisPort.value
+  // Application du type de tarif (ex: revendeur 0.8)
+  const totalTarif = totalPublic * selectedMultiplier.value
+  return Math.round(totalTarif * 100) / 100
 })
 
 // Calcul du coût de revient total
@@ -753,6 +1002,7 @@ const demanderDevis = () => {
     support: selectedSupport.value,
     matiere: selectedMatiere.value,
     dimensions: dimensions.value,
+    unite: unite.value,
     surface: surfaceM2.value,
     impressionType: impressionType.value,
     blancSoutien: blancSoutien.value,
@@ -788,6 +1038,7 @@ const ajouterAuPanier = () => {
     support: selectedSupport.value,
     matiere: selectedMatiere.value,
     dimensions: dimensions.value,
+    unite: unite.value,
     surface: surfaceM2.value,
     impressionType: impressionType.value,
     blancSoutien: blancSoutien.value,
@@ -815,6 +1066,7 @@ const ajouterAuPanier = () => {
 // Charger les données au montage
 onMounted(() => {
   printStore.loadFromLocalStorage()
+  adminStore.loadFromLocalStorage()
 })
 </script>
 
